@@ -1,13 +1,21 @@
 import { Component } from 'react';
 import { createPortal } from 'react-dom';
+import PropTypes from 'prop-types';
 import css from 'components/Modal/Modal.module.css';
 
 const modalRoot = document.querySelector('#modal-root');
 
 export class Modal extends Component {
+  static propTypes = {
+    closeModal: PropTypes.func.isRequired,
+    src: PropTypes.string.isRequired,
+    alt: PropTypes.string.isRequired,
+  };
+
   componentDidMount() {
     window.addEventListener('keydown', this.handleKeyDown);
   }
+
   componentWillUnmount() {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
