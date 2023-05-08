@@ -1,5 +1,7 @@
 import { Component } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 import { fetchImages } from 'services/api';
+
 import {
   Searchbar,
   ImageGallery,
@@ -22,21 +24,30 @@ export class App extends Component {
     error: false,
   };
 
+  notify = () =>
+    toast.info(
+      'There are not any images for your request...Please make another one'
+    );
+
   componentDidUpdate(_, prevState) {
     if (prevState.name !== this.state.name) {
-      this.showLoader();
+      this.setState({ loading: true });
       fetchImages(this.state.name)
-        .then(({ totalHits, hits }) => {
+        .then(({ totalHits, images }) => {
+          if (!images.length) {
+            this.notify();
+          }
           const total = Math.ceil(totalHits / 12);
+
           if (prevState.page >= total) {
             this.setState({
-              images: hits,
+              images,
               loading: false,
               showButton: false,
             });
           } else {
             this.setState({
-              images: hits,
+              images,
               total,
               page: 2,
               loading: false,
@@ -50,23 +61,23 @@ export class App extends Component {
   }
 
   renderImages = page => {
-    this.showLoader();
-    this.showButton();
+    this.setState({ loading: true });
+    this.setState({ showButton: false });
     fetchImages(this.state.name, page)
-      .then(({ hits }) => {
+      .then(({ images }) => {
         this.setState(state => {
           if (state.page >= state.total) {
             return {
               showButton: false,
               loading: false,
-              images: [...state.images, ...hits],
+              images: [...state.images, ...images],
             };
           }
           return {
             showButton: true,
             page: state.page + 1,
             loading: false,
-            images: [...state.images, ...hits],
+            images: [...state.images, ...images],
           };
         });
       })
@@ -79,14 +90,6 @@ export class App extends Component {
 
   onError = () => {
     this.setState({ error: true, loading: false, showButton: false });
-  };
-
-  showLoader = () => {
-    this.setState({ loading: true });
-  };
-
-  showButton = () => {
-    this.setState({ showButton: false });
   };
 
   openModal = (src, alt) => {
@@ -111,6 +114,11 @@ export class App extends Component {
         }}
       >
         <ErrorBoundary>
+          <ToastContainer
+            bodyClassName="toast-w"
+            className="toast-c"
+            autoClose={3500}
+          />
           <Searchbar getName={this.getName} />
           <ImageGallery
             images={images}

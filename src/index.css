@@ -27,3 +27,15 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+/* .toast-w {
+  background-color: rgb(252, 232, 14);
+}
+
+.toast-c {
+  color: rgb(252, 232, 14);
+} */
+
+.Toastify__toast-theme--light {
+  background-color: rgb(252, 232, 14);
+}
