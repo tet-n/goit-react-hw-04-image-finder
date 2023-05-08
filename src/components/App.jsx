@@ -114,12 +114,12 @@ export class App extends Component {
         }}
       >
         <ErrorBoundary>
+          <Searchbar getName={this.getName} />
           <ToastContainer
             bodyClassName="toast-w"
             className="toast-c"
             autoClose={3500}
           />
-          <Searchbar getName={this.getName} />
           <ImageGallery
             images={images}
             openModal={this.openModal}
