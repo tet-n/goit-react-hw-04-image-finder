@@ -13,9 +13,9 @@ const initialValues = {
   name: '',
 };
 
-export const Searchbar = ({ getName }) => {
+export const Searchbar = ({ updateStateAfterSubmittingForm, isSubmitting }) => {
   const handleSubmit = (values, { resetForm }) => {
-    getName(values.name.trim());
+    updateStateAfterSubmittingForm(values.name.trim());
     resetForm();
   };
 
@@ -46,5 +46,5 @@ export const Searchbar = ({ getName }) => {
 };
 
 Searchbar.propTypes = {
-  getName: PropTypes.func.isRequired,
+  updateStateAfterSubmittingForm: PropTypes.func.isRequired,
 };

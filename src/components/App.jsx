@@ -8,7 +8,6 @@ import {
   Button,
   Loader,
   ErrorMessage,
-  ErrorBoundary,
   Modal,
 } from 'components/index';
 
@@ -17,7 +16,6 @@ export class App extends Component {
     name: '',
     images: [],
     page: 1,
-    total: null,
     loading: false,
     showButton: false,
     showModal: false,
@@ -30,62 +28,38 @@ export class App extends Component {
     );
 
   componentDidUpdate(_, prevState) {
-    if (prevState.name !== this.state.name) {
+    if (
+      prevState.name !== this.state.name ||
+      prevState.page !== this.state.page
+    ) {
       this.setState({ loading: true });
-      fetchImages(this.state.name)
+      this.setState({ showButton: false });
+      fetchImages(this.state.name, this.state.page)
         .then(({ totalHits, images }) => {
           if (!images.length) {
             this.notify();
+            return;
           }
-          const total = Math.ceil(totalHits / 12);
 
-          if (prevState.page >= total) {
-            this.setState({
-              images,
-              loading: false,
-              showButton: false,
-            });
-          } else {
-            this.setState({
-              images,
-              total,
-              page: 2,
-              loading: false,
-              showButton: true,
-            });
-          }
+          this.setState(state => ({
+            images: [...state.images, ...images],
+            showButton: this.state.page < Math.ceil(totalHits / 12),
+          }));
         })
-        .catch(this.onError);
+        .catch(this.onError)
+        .finally(() => this.setState({ loading: false }));
       return;
     }
   }
 
-  renderImages = page => {
-    this.setState({ loading: true });
-    this.setState({ showButton: false });
-    fetchImages(this.state.name, page)
-      .then(({ images }) => {
-        this.setState(state => {
-          if (state.page >= state.total) {
-            return {
-              showButton: false,
-              loading: false,
-              images: [...state.images, ...images],
-            };
-          }
-          return {
-            showButton: true,
-            page: state.page + 1,
-            loading: false,
-            images: [...state.images, ...images],
-          };
-        });
-      })
-      .catch(this.onError);
+  renderImages = () => {
+    this.setState(state => ({
+      page: state.page + 1,
+    }));
   };
 
-  getName = name => {
-    this.setState({ name });
+  updateStateAfterSubmittingForm = name => {
+    this.setState({ name, page: 1, images: [] });
   };
 
   onError = () => {
@@ -103,7 +77,7 @@ export class App extends Component {
   };
 
   render() {
-    const { showModal, showButton, loading, error, page, images } = this.state;
+    const { showModal, showButton, loading, error, images } = this.state;
     return (
       <div
         style={{
@@ -113,30 +87,30 @@ export class App extends Component {
           paddingBottom: 24,
         }}
       >
-        <ErrorBoundary>
-          <Searchbar getName={this.getName} />
-          <ToastContainer
-            bodyClassName="toast-w"
-            className="toast-c"
-            autoClose={3500}
-          />
-          <ImageGallery
-            images={images}
+        <Searchbar
+          updateStateAfterSubmittingForm={this.updateStateAfterSubmittingForm}
+        />
+        <ToastContainer
+          bodyClassName="toast-w"
+          className="toast-c"
+          autoClose={3500}
+        />
+        <ImageGallery
+          images={images}
+          openModal={this.openModal}
+          showModal={showModal}
+        />
+        {showButton && <Button onClick={this.renderImages} />}
+        <Loader visible={loading} />
+        {error && <ErrorMessage />}
+        {showModal && (
+          <Modal
             openModal={this.openModal}
-            showModal={showModal}
+            closeModal={this.closeModal}
+            src={showModal.src}
+            alt={showModal.alt}
           />
-          {showButton && <Button onClick={() => this.renderImages(page)} />}
-          <Loader visible={loading} />
-          {error && <ErrorMessage />}
-          {showModal && (
-            <Modal
-              openModal={this.openModal}
-              closeModal={this.closeModal}
-              src={showModal.src}
-              alt={showModal.alt}
-            />
-          )}
-        </ErrorBoundary>
+        )}
       </div>
     );
   }
