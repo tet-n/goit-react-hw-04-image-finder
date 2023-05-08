@@ -1,4 +1,5 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import PropTypes from 'prop-types';
 import * as yup from 'yup';
 import css from './Searchbar.module.css';
 
@@ -14,7 +15,6 @@ const initialValues = {
 
 export const Searchbar = ({ getName }) => {
   const handleSubmit = (values, { resetForm }) => {
-    // setSubmitting(false);
     getName(values.name.trim());
     resetForm();
   };
@@ -43,4 +43,8 @@ export const Searchbar = ({ getName }) => {
       </Formik>
     </header>
   );
+};
+
+Searchbar.propTypes = {
+  getName: PropTypes.func.isRequired,
 };

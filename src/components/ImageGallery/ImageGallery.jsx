@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import css from 'components/ImageGallery/ImageGallery.module.css';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
+
+import css from 'components/ImageGallery/ImageGallery.module.css';
 
 export const ImageGallery = ({ images, openModal }) => {
   return (
