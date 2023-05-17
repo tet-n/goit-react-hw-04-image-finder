@@ -13,7 +13,7 @@ const initialValues = {
   name: '',
 };
 
-export const Searchbar = ({ updateStateAfterSubmittingForm, isSubmitting }) => {
+export const Searchbar = ({ updateStateAfterSubmittingForm }) => {
   const handleSubmit = (values, { resetForm }) => {
     updateStateAfterSubmittingForm(values.name.trim());
     resetForm();

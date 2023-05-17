@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { fetchImages } from 'services/api';
 
@@ -11,107 +11,86 @@ import {
   Modal,
 } from 'components/index';
 
-export class App extends Component {
-  state = {
-    name: '',
-    images: [],
-    page: 1,
-    loading: false,
-    showButton: false,
-    showModal: false,
-    error: false,
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [error, setError] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    if (!query) return;
+    setShowLoader(true);
+    setShowButton(false);
+    fetchImages(query, page)
+      .then(({ totalHits, images }) => {
+        if (!images.length) {
+          notify();
+          return;
+        }
+        setImages(s => [...s, ...images]);
+        setShowButton(page < Math.ceil(totalHits / 12));
+      })
+      .catch(e => handleError(e.message))
+      .finally(() => setShowLoader(false));
+  }, [query, page]);
+
+  const openModal = (src, alt) => {
+    setShowModal({ src, alt });
   };
 
-  notify = () =>
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  const handleSubmitting = query => {
+    setQuery(query);
+    setImages([]);
+    setPage(1);
+  };
+  const notify = () =>
     toast.info(
       'There are not any images for your request...Please make another one'
     );
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.name !== this.state.name ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ loading: true });
-      this.setState({ showButton: false });
-      fetchImages(this.state.name, this.state.page)
-        .then(({ totalHits, images }) => {
-          if (!images.length) {
-            this.notify();
-            return;
-          }
-
-          this.setState(state => ({
-            images: [...state.images, ...images],
-            showButton: this.state.page < Math.ceil(totalHits / 12),
-          }));
-        })
-        .catch(this.onError)
-        .finally(() => this.setState({ loading: false }));
-      return;
-    }
-  }
-
-  renderImages = () => {
-    this.setState(state => ({
-      page: state.page + 1,
-    }));
+  const handleError = message => {
+    setError(message);
+    setShowLoader(false);
+    setShowButton(false);
   };
 
-  updateStateAfterSubmittingForm = name => {
-    this.setState({ name, page: 1, images: [] });
+  const renderImages = () => {
+    setPage(s => s + 1);
   };
 
-  onError = () => {
-    this.setState({ error: true, loading: false, showButton: false });
-  };
-
-  openModal = (src, alt) => {
-    this.setState({ showModal: { src, alt } });
-  };
-
-  closeModal = () => {
-    this.setState({
-      showModal: null,
-    });
-  };
-
-  render() {
-    const { showModal, showButton, loading, error, images } = this.state;
-    return (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gridGap: 16,
-          paddingBottom: 24,
-        }}
-      >
-        <Searchbar
-          updateStateAfterSubmittingForm={this.updateStateAfterSubmittingForm}
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: 16,
+        paddingBottom: 24,
+      }}
+    >
+      <Searchbar updateStateAfterSubmittingForm={handleSubmitting} />
+      <ToastContainer
+        bodyClassName="toast-w"
+        className="toast-c"
+        autoClose={3500}
+      />
+      <ImageGallery images={images} openModal={openModal} />
+      {showButton && <Button onClick={renderImages} />}
+      <Loader visible={showLoader} />
+      {error && <ErrorMessage error={error} />}
+      {showModal && (
+        <Modal
+          closeModal={closeModal}
+          src={showModal.src}
+          alt={showModal.alt}
         />
-        <ToastContainer
-          bodyClassName="toast-w"
-          className="toast-c"
-          autoClose={3500}
-        />
-        <ImageGallery
-          images={images}
-          openModal={this.openModal}
-          showModal={showModal}
-        />
-        {showButton && <Button onClick={this.renderImages} />}
-        <Loader visible={loading} />
-        {error && <ErrorMessage />}
-        {showModal && (
-          <Modal
-            openModal={this.openModal}
-            closeModal={this.closeModal}
-            src={showModal.src}
-            alt={showModal.alt}
-          />
-        )}
-      </div>
-    );
-  }
-}
+      )}
+    </div>
+  );
+};
