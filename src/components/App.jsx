@@ -30,7 +30,7 @@ export const App = () => {
           notify();
           return;
         }
-        setImages(s => [...s, ...images]);
+        setImages(prevImages => [...prevImages, ...images]);
         setShowButton(page < Math.ceil(totalHits / 12));
       })
       .catch(e => handleError(e.message))
@@ -62,7 +62,7 @@ export const App = () => {
   };
 
   const renderImages = () => {
-    setPage(s => s + 1);
+    setPage(prevPage => prevPage + 1);
   };
 
   return (
